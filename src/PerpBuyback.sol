@@ -38,46 +38,49 @@ contract PerpBuyback is IPerpBuyback, Ownable2StepUpgradeable, PerpBuybackStorag
         _vePerp = vePerpArg;
         _perpBuybackPool = perpBuybackPoolArg;
 
-        address[18] memory userList = _userList;
-        for (uint8 i = 0; i < 18; i++) {
-            _canClaimVePerpUsers[userList[i]] = true;
+        address[18] memory whitelistUser = _whitelistUser;
+        for (uint8 i = 0; i < 18; ++i) {
+            _isInWhitelist[whitelistUser[i]] = true;
         }
 
         __Ownable2Step_init();
     }
 
     function withdrawToken(address token, uint256 tokenAmount) external onlyOwner {
-        require(_remainingBuybackUsdcAmount == 0);
+        // PB_RBUAGE: remaining buyback USDC amount not zero
+        require(_remainingBuybackUsdcAmount == 0, "PB_RBUANZ");
         address owner = owner();
         IERC20Upgradeable(token).transfer(owner, tokenAmount);
     }
 
     function swapInPerpBuybackPool() external {
-        require(_remainingBuybackUsdcAmount > 0);
+        // PB_RBUAIZ: remaining buyback USDC amount is zero
+        require(_remainingBuybackUsdcAmount > 0, "PB_RBUAIZ");
 
         uint256 usdcBalance = IERC20Upgradeable(_usdc).balanceOf(address(this));
-        uint256 usdcBuybackAmount = usdcBalance > _remainingBuybackUsdcAmount
+        uint256 buybackUsdcAmount = usdcBalance > _remainingBuybackUsdcAmount
             ? _remainingBuybackUsdcAmount
             : usdcBalance;
-        _remainingBuybackUsdcAmount -= usdcBuybackAmount;
+        _remainingBuybackUsdcAmount -= buybackUsdcAmount;
 
         address perpBuybackPool = _perpBuybackPool;
-        require(IERC20Upgradeable(_usdc).approve(perpBuybackPool, usdcBuybackAmount));
+        require(IERC20Upgradeable(_usdc).approve(perpBuybackPool, buybackUsdcAmount));
 
-        uint256 buybackPerpAmount = IPerpBuybackPool(perpBuybackPool).swap(usdcBuybackAmount);
+        uint256 buybackPerpAmount = IPerpBuybackPool(perpBuybackPool).swap(buybackUsdcAmount);
         uint256 eachUserPerpAmount = buybackPerpAmount / 18;
 
-        address[18] memory userList = _userList;
-        for (uint8 i = 0; i < 18; i++) {
-            _userClaimableVePerpAmount[userList[i]] += eachUserPerpAmount;
+        address[18] memory whitelistUser = _whitelistUser;
+        for (uint8 i = 0; i < 18; ++i) {
+            _userClaimableVePerpAmount[whitelistUser[i]] += eachUserPerpAmount;
         }
 
-        emit BuybackTriggered(usdcBuybackAmount, buybackPerpAmount);
+        emit BuybackTriggered(buybackUsdcAmount, buybackPerpAmount);
     }
 
     function claim() external {
         address user = msg.sender;
-        require(_canClaimVePerpUsers[user]);
+        // PB_UINC: user is not whitelisted
+        require(_isInWhitelist[user], "PB_UINW");
 
         address vePerp = _vePerp;
         uint256 currentWeekStart = (block.timestamp / WEEK) * WEEK;
@@ -87,6 +90,8 @@ contract PerpBuyback is IPerpBuyback, Ownable2StepUpgradeable, PerpBuybackStorag
         require(lockEnd > currentWeekStart + 26 * WEEK, "PB_ETL26W");
 
         uint256 userClaimableVePerpAmount = _userClaimableVePerpAmount[user];
+        // PB_UCAIZ: user claimable amount is zero
+        require(userClaimableVePerpAmount > 0, "PB_UCAIZ");
         _userClaimableVePerpAmount[user] = 0;
 
         IERC20Upgradeable(_perp).approve(vePerp, userClaimableVePerpAmount);
@@ -115,19 +120,19 @@ contract PerpBuyback is IPerpBuyback, Ownable2StepUpgradeable, PerpBuybackStorag
         return _perpBuybackPool;
     }
 
-    function getUserList() external view override returns (address[18] memory) {
-        return _userList;
+    function getWhitelistUser() external view override returns (address[18] memory) {
+        return _whitelistUser;
     }
 
     function getRemainingBuybackUsdcAmount() external view override returns (uint256) {
         return _remainingBuybackUsdcAmount;
     }
 
-    function canClaimVePerp(address user) external view override returns (bool) {
-        return _canClaimVePerpUsers[user];
-    }
-
     function getUserClaimableVePerpAmount(address user) external view override returns (uint256) {
         return _userClaimableVePerpAmount[user];
+    }
+
+    function isInWhitelist(address user) external view override returns (bool) {
+        return _isInWhitelist[user];
     }
 }

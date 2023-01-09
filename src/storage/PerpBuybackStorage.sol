@@ -11,7 +11,7 @@ abstract contract PerpBuybackStorage {
     address internal _perpBuybackPool;
 
     // TODO: need to add source url
-    address[18] internal _userList = [
+    address[18] internal _whitelistUser = [
         0x0000000000000000000000000000000000000001,
         0x0000000000000000000000000000000000000002,
         0x0000000000000000000000000000000000000003,
@@ -35,7 +35,7 @@ abstract contract PerpBuybackStorage {
     // 3.59M in USDC (6 decimals)
     uint256 internal _remainingBuybackUsdcAmount = 3590000 * 10**6;
 
-    mapping(address => bool) internal _canClaimVePerpUsers;
+    mapping(address => bool) internal _isInWhitelist;
 
     mapping(address => uint256) internal _userClaimableVePerpAmount;
 }

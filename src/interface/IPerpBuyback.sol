@@ -16,11 +16,11 @@ interface IPerpBuyback is IPerpBuybackEvent {
 
     function getPerpBuybackPool() external view returns (address);
 
-    function getUserList() external view returns (address[18] memory);
-
-    function canClaimVePerp(address user) external view returns (bool);
+    function getWhitelistUser() external view returns (address[18] memory);
 
     function getRemainingBuybackUsdcAmount() external view returns (uint256);
 
     function getUserClaimableVePerpAmount(address) external view returns (uint256);
+
+    function isInWhitelist(address user) external view returns (bool);
 }
