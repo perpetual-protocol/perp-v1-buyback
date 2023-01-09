@@ -1,46 +1,24 @@
 pragma solidity 0.8.17;
 
-import "forge-std/Test.sol";
+import { SetUp } from "./SetUp.sol";
 import { PerpBuybackPool } from "../src/PerpBuybackPool.sol";
-import { TestERC20 } from "../src/test/TestERC20.sol";
 import { IPriceFeed } from "../src/interface/IPriceFeed.sol";
-import { Vm } from "forge-std/Vm.sol";
 
-contract PerpBuybackPoolTest is Test {
-    TestERC20 public usdc;
-    TestERC20 public perp;
+contract PerpBuybackPoolTest is SetUp {
     address public perpBuyback;
     address public perpChainlinkAggregator;
 
     PerpBuybackPool public perpBuybackPool;
 
-    function makeContract(string memory contractName) public returns (address) {
-        address contractAddr = makeAddr(contractName);
-        vm.etch(contractAddr, bytes(contractName));
-        return contractAddr;
-    }
-
-    function makeTestERC20(
-        string memory name,
-        string memory symbol,
-        uint8 decimals
-    ) public returns (TestERC20) {
-        TestERC20 testErc20 = new TestERC20(name, symbol, decimals);
-        vm.label(address(testErc20), name);
-        return testErc20;
-    }
-
-    function setUp() external {
-        usdc = makeTestERC20("USD Coin", "USDC", 6);
-
-        perp = makeTestERC20("Perpetual", "PERP", 18);
+    function setUp() public override {
+        SetUp.setUp();
 
         perpBuyback = makeContract("PerpBuyback");
         perpChainlinkAggregator = makeContract("PerpChainlinkAggregator");
 
         // mock perp price at 10 USD
         vm.mockCall(
-            address(perpChainlinkAggregator),
+            perpChainlinkAggregator,
             abi.encodeWithSelector(IPriceFeed.latestAnswer.selector),
             abi.encode(10 * 10**8)
         );
