@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "typechain": "hardhat typechain",
-    "build": "forge build",
+    "build": "forge build && npm run typechain",
     "test": "forge test",
     "coverage": "forge coverage",
     "coverage:report": "forge coverage --report lcov; genhtml lcov.info --output-directory coverage-out",

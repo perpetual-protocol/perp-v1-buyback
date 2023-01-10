@@ -12,7 +12,18 @@ Use 17.5% monthly treasury fee income to buy back PERP over the years to cover a
 ```bash
 git clone git@github.com:perpetual-protocol/perp-v1-buyback.git
 
-forge build
+// Install
+npm install
 
-forge test
+// Build
+npm run build
+
+// Run test
+npm run test
+
+// Deploy to optimism-goerli
+npm run deploy:optimism-goerli
+
+// Deploy to optimism
+npm run deploy:optimism
 ```
