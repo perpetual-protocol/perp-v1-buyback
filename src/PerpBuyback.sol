@@ -5,9 +5,9 @@ import { IPerpBuyback } from "./interface/IPerpBuyback.sol";
 import { IVePerp } from "./interface/IVePerp.sol";
 import { IPerpBuybackPool } from "./interface/IPerpBuybackPool.sol";
 import { PerpBuybackStorage } from "./storage/PerpBuybackStorage.sol";
-import { Ownable2StepUpgradeable } from "openzeppelin-contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import { IERC20Upgradeable } from "openzeppelin-contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import { AddressUpgradeable } from "openzeppelin-contracts-upgradeable/utils/AddressUpgradeable.sol";
+import { Ownable2StepUpgradeable } from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { AddressUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 contract PerpBuyback is IPerpBuyback, Ownable2StepUpgradeable, PerpBuybackStorage {
     using AddressUpgradeable for address;

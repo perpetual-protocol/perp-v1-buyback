@@ -4,9 +4,9 @@ pragma solidity 0.8.17;
 import { IPerpBuybackPool } from "./interface/IPerpBuybackPool.sol";
 import { IPriceFeed } from "./interface/IPriceFeed.sol";
 import { PerpBuybackPoolStorage } from "./storage/PerpBuybackPoolStorage.sol";
-import { Ownable2StepUpgradeable } from "openzeppelin-contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import { IERC20Upgradeable } from "openzeppelin-contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import { AddressUpgradeable } from "openzeppelin-contracts-upgradeable/utils/AddressUpgradeable.sol";
+import { Ownable2StepUpgradeable } from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { AddressUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 contract PerpBuybackPool is IPerpBuybackPool, Ownable2StepUpgradeable, PerpBuybackPoolStorage {
     using AddressUpgradeable for address;
