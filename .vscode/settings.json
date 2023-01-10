@@ -1,5 +1,5 @@
 {
-    "solidity.packageDefaultDependenciesDirectory": "lib",
+    "solidity.packageDefaultDependenciesDirectory": "node_modules",
     "solidity.packageDefaultDependenciesContractsDirectory": "src",
     "solidity.enabledAsYouTypeCompilationErrorCheck": true,
     "solidity.linter": "solhint",
