@@ -49,6 +49,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
 }
 
-func.tags = ["Setter"]
+func.tags = ["transfer-owners"]
 
 export default func

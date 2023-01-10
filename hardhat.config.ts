@@ -34,14 +34,14 @@ const config: HardhatUserConfig = {
             accounts: {
                 mnemonic: process.env.OPTIMISM_DEPLOYER_MNEMONIC,
             },
-            chainId: 10,
+            chainId: ChainId.OPTIMISM_CHAIN_ID,
         },
         "optimism-goerli": {
             url: process.env.OPTIMISM_GOERLI_WEB3_ENDPOINT,
             accounts: {
                 mnemonic: process.env.OPTIMISM_GOERLI_DEPLOYER_MNEMONIC,
             },
-            chainId: 420,
+            chainId: ChainId.OPTIMISM_GOERLI_CHAIN_ID,
         },
     },
     namedAccounts: {

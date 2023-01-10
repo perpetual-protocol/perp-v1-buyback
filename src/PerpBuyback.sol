@@ -63,9 +63,8 @@ contract PerpBuyback is IPerpBuyback, Ownable2StepUpgradeable, PerpBuybackStorag
         // 3.59M in USDC (6 decimals)
         _remainingBuybackUsdcAmount = 3590000 * 10**6;
 
-        address[18] memory whitelistUser = _whitelistUser;
         for (uint8 i = 0; i < 18; ++i) {
-            _isInWhitelist[whitelistUser[i]] = true;
+            _isInWhitelist[_whitelistUser[i]] = true;
         }
 
         __Ownable2Step_init();
@@ -94,9 +93,8 @@ contract PerpBuyback is IPerpBuyback, Ownable2StepUpgradeable, PerpBuybackStorag
         uint256 buybackPerpAmount = IPerpBuybackPool(perpBuybackPool).swap(buybackUsdcAmount);
         uint256 eachUserPerpAmount = buybackPerpAmount / 18;
 
-        address[18] memory whitelistUser = _whitelistUser;
         for (uint8 i = 0; i < 18; ++i) {
-            _userClaimableVePerpAmount[whitelistUser[i]] += eachUserPerpAmount;
+            _userClaimableVePerpAmount[_whitelistUser[i]] += eachUserPerpAmount;
         }
 
         emit BuybackTriggered(buybackUsdcAmount, buybackPerpAmount);

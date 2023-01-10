@@ -31,6 +31,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     })
 }
 
-func.tags = ["PerpBuyback"]
+func.tags = ["PerpBuybackPool"]
 
 export default func
