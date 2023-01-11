@@ -2,7 +2,7 @@ pragma solidity 0.8.17;
 
 import { SetUp } from "./SetUp.sol";
 import { PerpBuybackPool } from "../src/PerpBuybackPool.sol";
-import { IPriceFeed } from "../src/interface/IPriceFeed.sol";
+import { AggregatorV2V3Interface } from "@chainlink/contracts/src/v0.6/interfaces/AggregatorV2V3Interface.sol";
 
 contract PerpBuybackPoolTest is SetUp {
     address public perpBuyback;
@@ -19,8 +19,8 @@ contract PerpBuybackPoolTest is SetUp {
         // mock perp price at 10 USD
         vm.mockCall(
             perpChainlinkAggregator,
-            abi.encodeWithSelector(IPriceFeed.latestAnswer.selector),
-            abi.encode(10 * 10**8)
+            abi.encodeWithSelector(AggregatorV2V3Interface.latestAnswer.selector),
+            abi.encode(10 * 10 ** 8)
         );
 
         perpBuybackPool = new PerpBuybackPool();
@@ -33,7 +33,7 @@ contract PerpBuybackPoolTest is SetUp {
     }
 
     function test_swap() external {
-        uint256 usdcBuybackAmount = 420 * 10**6;
+        uint256 usdcBuybackAmount = 420 * 10 ** 6;
         usdc.mint(perpBuyback, usdcBuybackAmount);
 
         uint256 perpBuybackPoolPerpBalanceBefore = perp.balanceOf(address(perpBuybackPool));
@@ -61,7 +61,7 @@ contract PerpBuybackPoolTest is SetUp {
 
     function test_revert_swap_perp_balance_insufficient() external {
         // perpBuyBackPool has only 1000 PERP, PERP price is 10 USD, swap amount > 10000 USD will revert
-        uint256 usdcBuybackAmount = 10001 * 10**6;
+        uint256 usdcBuybackAmount = 10001 * 10 ** 6;
         usdc.mint(perpBuyback, usdcBuybackAmount);
 
         vm.startPrank(perpBuyback);

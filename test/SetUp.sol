@@ -2,7 +2,6 @@ pragma solidity 0.8.17;
 
 import "forge-std/Test.sol";
 import { TestERC20 } from "../src/test/TestERC20.sol";
-import { IPriceFeed } from "../src/interface/IPriceFeed.sol";
 
 contract SetUp is Test {
     TestERC20 public usdc;

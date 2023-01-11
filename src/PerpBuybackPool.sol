@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { IPerpBuybackPool } from "./interface/IPerpBuybackPool.sol";
-import { IPriceFeed } from "./interface/IPriceFeed.sol";
+import { AggregatorV2V3Interface } from "@chainlink/contracts/src/v0.6/interfaces/AggregatorV2V3Interface.sol";
 import { PerpBuybackPoolStorage } from "./storage/PerpBuybackPoolStorage.sol";
 import { Ownable2StepUpgradeable } from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -15,11 +15,7 @@ contract PerpBuybackPool is IPerpBuybackPool, Ownable2StepUpgradeable, PerpBuyba
     // EXTERNAL NON-VIEW
     //
 
-    function initialize(
-        address usdcArg,
-        address perpArg,
-        address perpChainlinkAggregatorArg
-    ) external initializer {
+    function initialize(address usdcArg, address perpArg, address perpChainlinkAggregatorArg) external initializer {
         // PBP_UINC: usdc is not contract
         require(usdcArg.isContract(), "PBP_UINC");
         // PBP_PINC: perp is not contract
@@ -51,11 +47,14 @@ contract PerpBuybackPool is IPerpBuybackPool, Ownable2StepUpgradeable, PerpBuyba
         // PBP_OPB: only perpBuyback
         require(msg.sender == perpBuyback, "PBP_OPB");
 
-        // chainlink price feed will return in 8 decimals
-        uint256 perpIndexPrice = uint256(IPriceFeed(_perpChainlinkAggregator).latestAnswer()) / (10**8);
+        uint8 chainlinkDecimals = AggregatorV2V3Interface(_perpChainlinkAggregator).decimals();
+        int256 latestAnswer = AggregatorV2V3Interface(_perpChainlinkAggregator).latestAnswer();
+        require(latestAnswer > 0, "oracle is 0");
+        uint256 perpIndexPrice = uint256(latestAnswer) / (10 ** chainlinkDecimals);
 
         // usdc is in 6 decimals
-        uint256 buybackPerpAmount = (usdcAmount * (10**12)) / perpIndexPrice;
+        uint256 buybackPerpAmount = ((usdcAmount * (10 ** (chainlinkDecimals + 6))) * uint256(latestAnswer)) /
+            (10 ** chainlinkDecimals);
         uint256 perpBalance = IERC20Upgradeable(_perp).balanceOf(address(this));
 
         // PBP_PBI: perp balance is insufficient
