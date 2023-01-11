@@ -169,8 +169,8 @@ contract PerpBuybackTest is IPerpBuybackEvent, SetUp {
         perpBuyback.claim();
     }
 
-    function test_revert_claim_when_user_is_not_in_canClaimVePerpUsers() external {
-        vm.expectRevert(bytes("EnumerableMap: nonexistent key"));
+    function test_revert_claim_when_user_is_not_in_user_map() external {
+        vm.expectRevert(bytes("PB_UNIUM"));
         perpBuyback.claim();
     }
 
