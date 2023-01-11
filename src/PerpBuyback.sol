@@ -105,8 +105,8 @@ contract PerpBuyback is IPerpBuyback, ReentrancyGuardUpgradeable, Ownable2StepUp
 
     function claim() external nonReentrant {
         address user = msg.sender;
-        // PB_UINC: user is not whitelisted
-        require(_sharesByUser.get(user) > 0, "PB_UINC");
+
+        require(_sharesByUser.get(user) > 0);
 
         address vePerp = _vePerp;
         uint256 currentWeekStart = (block.timestamp / WEEK) * WEEK;
