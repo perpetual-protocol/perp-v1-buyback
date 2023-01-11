@@ -58,7 +58,7 @@ contract PerpBuybackPool is IPerpBuybackPool, Ownable2StepUpgradeable, PerpBuyba
         uint256 perpBalance = IERC20Upgradeable(_perp).balanceOf(address(this));
 
         // PBP_PBI: perp balance is insufficient
-        require(buybackPerpAmount < perpBalance, "PBP_PBI");
+        require(buybackPerpAmount <= perpBalance, "PBP_PBI");
 
         IERC20Upgradeable(_usdc).transferFrom(perpBuyback, address(this), usdcAmount);
         IERC20Upgradeable(_perp).transfer(perpBuyback, buybackPerpAmount);
