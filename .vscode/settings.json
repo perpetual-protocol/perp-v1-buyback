@@ -1,6 +1,6 @@
 {
     "solidity.packageDefaultDependenciesDirectory": "node_modules",
-    "solidity.packageDefaultDependenciesContractsDirectory": "",
+    "solidity.packageDefaultDependenciesContractsDirectory": "src",
     "solidity.enabledAsYouTypeCompilationErrorCheck": true,
     "solidity.linter": "solhint",
     "editor.formatOnSave": false,

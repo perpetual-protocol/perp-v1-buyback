@@ -1,0 +1,61 @@
+{
+  "name": "@perp/perp-v1-buyback",
+  "version": "1.0.0",
+  "description": "Perpetual Protocol V1 Buyback Contract",
+  "license": "MIT",
+  "author": {
+    "name": "Perpetual Protocol",
+    "email": "hi@perp.fi",
+    "url": "https://perp.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/perpetual-protocol/perp-voting-escrow.git"
+  },
+  "homepage": "https://perp.com/",
+  "keywords": [
+    "perpetual-protocol",
+    "perpetual-protocol-v2",
+    "perp",
+    "ve",
+    "contracts",
+    "artifacts"
+  ],
+  "scripts": {
+    "typechain": "hardhat typechain",
+    "build": "forge build && npm run typechain",
+    "test": "forge test",
+    "coverage": "forge coverage",
+    "coverage:report": "forge coverage --report lcov; genhtml lcov.info --output-directory coverage-out",
+    "deploy:optimism": "hardhat deploy --network optimism",
+    "deploy:optimism-goerli": "hardhat deploy --network optimism-goerli"
+  },
+  "devDependencies": {
+    "@chainlink/contracts": "0.1.7",
+    "@openzeppelin/contracts": "4.8.0",
+    "@openzeppelin/contracts-upgradeable": "4.8.0",
+    "@typechain/ethers-v5": "10.2.0",
+    "@typechain/hardhat": "6.1.5",
+    "dotenv": "16.0.3",
+    "ethers": "5.7.2",
+    "hardhat": "2.12.5",
+    "hardhat-deploy": "0.11.22",
+    "hardhat-deploy-ethers": "0.3.0-beta.13",
+    "prettier": "2.8.2",
+    "prettier-plugin-solidity": "1.1.1",
+    "solhint": "3.3.7",
+    "solhint-plugin-prettier": "0.0.5",
+    "ts-node": "10.9.1",
+    "typechain": "8.1.1",
+    "typescript": "4.9.4"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write"
+    ],
+    "*.sol": [
+      "prettier --write",
+      "solhint"
+    ]
+  }
+}
