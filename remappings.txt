@@ -1,3 +1,5 @@
+@chainlink/=node_modules/@chainlink/
+@ensdomains/=node_modules/@ensdomains/
 @openzeppelin/=node_modules/@openzeppelin/
 ds-test/=lib/forge-std/lib/ds-test/src/
 forge-std/=lib/forge-std/src/
