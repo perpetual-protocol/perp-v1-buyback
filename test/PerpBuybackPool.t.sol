@@ -2,7 +2,7 @@ pragma solidity 0.8.17;
 
 import { SetUp } from "./SetUp.sol";
 import { PerpBuybackPool } from "../src/PerpBuybackPool.sol";
-import { IPriceFeed } from "../src/interface/IPriceFeed.sol";
+import { AggregatorInterface, AggregatorV3Interface } from "@chainlink/contracts/src/v0.6/interfaces/AggregatorV2V3Interface.sol";
 
 contract PerpBuybackPoolTest is SetUp {
     address public perpBuyback;
@@ -16,11 +16,17 @@ contract PerpBuybackPoolTest is SetUp {
         perpBuyback = makeContract("PerpBuyback");
         perpChainlinkAggregator = makeContract("PerpChainlinkAggregator");
 
-        // mock perp price at 10 USD
+        // mock perpChainlinkAggregator price at 10 USD and decimals at 8
+        // not sure why using AggregatorV2V3Interface will failed here, so separate interface first
         vm.mockCall(
             perpChainlinkAggregator,
-            abi.encodeWithSelector(IPriceFeed.latestAnswer.selector),
-            abi.encode(10 * 10**8)
+            abi.encodeWithSelector(AggregatorInterface.latestAnswer.selector),
+            abi.encode(10 * 10 ** 8)
+        );
+        vm.mockCall(
+            perpChainlinkAggregator,
+            abi.encodeWithSelector(AggregatorV3Interface.decimals.selector),
+            abi.encode(8)
         );
 
         perpBuybackPool = new PerpBuybackPool();
@@ -33,7 +39,7 @@ contract PerpBuybackPoolTest is SetUp {
     }
 
     function test_swap() external {
-        uint256 usdcBuybackAmount = 420 * 10**6;
+        uint256 usdcBuybackAmount = 420 * 10 ** 6;
         usdc.mint(perpBuyback, usdcBuybackAmount);
 
         uint256 perpBuybackPoolPerpBalanceBefore = perp.balanceOf(address(perpBuybackPool));
@@ -61,12 +67,29 @@ contract PerpBuybackPoolTest is SetUp {
 
     function test_revert_swap_perp_balance_insufficient() external {
         // perpBuyBackPool has only 1000 PERP, PERP price is 10 USD, swap amount > 10000 USD will revert
-        uint256 usdcBuybackAmount = 10001 * 10**6;
+        uint256 usdcBuybackAmount = 10001 * 10 ** 6;
         usdc.mint(perpBuyback, usdcBuybackAmount);
 
         vm.startPrank(perpBuyback);
         usdc.approve(address(perpBuybackPool), usdcBuybackAmount);
         vm.expectRevert(bytes("PBP_PBI"));
+        perpBuybackPool.swap(usdcBuybackAmount);
+        vm.stopPrank();
+    }
+
+    function test_revert_swap_perp_oracle_is_zero() external {
+        vm.mockCall(
+            perpChainlinkAggregator,
+            abi.encodeWithSelector(AggregatorInterface.latestAnswer.selector),
+            abi.encode(0 * 10 ** 8)
+        );
+
+        uint256 usdcBuybackAmount = 10 * 10 ** 6;
+        usdc.mint(perpBuyback, usdcBuybackAmount);
+
+        vm.startPrank(perpBuyback);
+        usdc.approve(address(perpBuybackPool), usdcBuybackAmount);
+        vm.expectRevert(bytes("PBP_OIZ"));
         perpBuybackPool.swap(usdcBuybackAmount);
         vm.stopPrank();
     }

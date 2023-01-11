@@ -11,27 +11,6 @@ contract PerpBuybackTest is IPerpBuybackEvent, SetUp {
 
     address public vePerp;
     address public perpBuybackPool;
-    address[18] public whitelistUser = [
-        0x0000000000000000000000000000000000000001,
-        0x0000000000000000000000000000000000000002,
-        0x0000000000000000000000000000000000000003,
-        0x0000000000000000000000000000000000000004,
-        0x0000000000000000000000000000000000000005,
-        0x0000000000000000000000000000000000000006,
-        0x0000000000000000000000000000000000000007,
-        0x0000000000000000000000000000000000000008,
-        0x0000000000000000000000000000000000000009,
-        0x000000000000000000000000000000000000000A,
-        0x000000000000000000000000000000000000000b,
-        0x000000000000000000000000000000000000000C,
-        0x000000000000000000000000000000000000000d,
-        0x000000000000000000000000000000000000000E,
-        0x000000000000000000000000000000000000000F,
-        0x0000000000000000000000000000000000000010,
-        0x0000000000000000000000000000000000000011,
-        0x0000000000000000000000000000000000000012
-    ];
-
     PerpBuyback public perpBuyback;
 
     function setUp() public override {
@@ -45,7 +24,7 @@ contract PerpBuybackTest is IPerpBuybackEvent, SetUp {
     }
 
     function test_swapInPerpBuybackPool() external {
-        uint256 buybackUsdcAmount = 1_800 * 10**6;
+        uint256 buybackUsdcAmount = 1_800 * 10 ** 6;
         uint256 buybackPerpAmount = 180 ether;
 
         // assume swap 1800 USDC for 180 PERP
@@ -61,16 +40,28 @@ contract PerpBuybackTest is IPerpBuybackEvent, SetUp {
 
         perpBuyback.swapInPerpBuybackPool();
 
-        // 3.59M - 1800 = 3,588,200
-        assertEq(perpBuyback.getRemainingBuybackUsdcAmount(), 3_588_200 * 10**6);
+        // 358763363 - 1800 = 358761563
+        assertEq(perpBuyback.getRemainingBuybackUsdcAmount(), 358761563 * 10 ** 6);
 
-        for (uint256 i = 0; i < 18; ++i) {
-            assertEq(perpBuyback.getUserClaimableVePerpAmount(whitelistUser[i]), buybackPerpAmount / 18);
+        // 180 PERP * 21.5717% = 38.82906
+        assertEq(
+            perpBuyback.getUserClaimableVePerpAmount(0x000000ea89990a17Ec07a35Ac2BBb02214C50152),
+            38829060000000000000
+        );
+
+        // sum of user's personal claimable perp is 180
+        uint256 num = perpBuyback.getUserNum();
+        uint256 sumClaimablePerp = 0;
+        for (uint256 i = 0; i < num; ++i) {
+            address user = perpBuyback.getUserByIndex(i);
+            uint256 claimablePerp = perpBuyback.getUserClaimableVePerpAmount(user);
+            sumClaimablePerp += claimablePerp;
         }
+        assertEq(sumClaimablePerp, buybackPerpAmount);
     }
 
     function test_swapInPerpBuybackPool_when_remainingBuybackUsdcAmount_lt_perpBuyback_usdcBalance() external {
-        uint256 buybackUsdcAmount = 3_590_000 * 10**6;
+        uint256 buybackUsdcAmount = perpBuyback.getRemainingBuybackUsdcAmount();
         uint256 buybackPerpAmount = 180 ether;
         uint256 perpBuybackUsdcBalance = buybackUsdcAmount * 42;
 
@@ -89,7 +80,7 @@ contract PerpBuybackTest is IPerpBuybackEvent, SetUp {
     }
 
     function test_revert_swapInPerpBuybackPool_when_remainingBuybackUsdcAmount_is_zero() external {
-        uint256 buybackUsdcAmount = 3_590_000 * 10**6;
+        uint256 buybackUsdcAmount = perpBuyback.getRemainingBuybackUsdcAmount();
         uint256 buybackPerpAmount = 359_000 ether;
 
         // assume swap 3.59M USDC for 0.358M PERP
@@ -110,10 +101,10 @@ contract PerpBuybackTest is IPerpBuybackEvent, SetUp {
     }
 
     function test_claim() external {
-        address user = address(0x1);
+        address user = perpBuyback.getUserByIndex(0);
 
         // swapInPerpBuybackPool (swap 1800 USD for 180 PERP)
-        uint256 buybackUsdcAmount = 1_800 * 10**6;
+        uint256 buybackUsdcAmount = 1_800 * 10 ** 6;
         uint256 buybackPerpAmount = 180 ether;
 
         usdc.mint(address(perpBuyback), buybackUsdcAmount);
@@ -126,7 +117,7 @@ contract PerpBuybackTest is IPerpBuybackEvent, SetUp {
         perpBuyback.swapInPerpBuybackPool();
 
         uint256 userClaimableVePerpAmount = perpBuyback.getUserClaimableVePerpAmount(user);
-        assertEq(userClaimableVePerpAmount, 10 ether);
+        assertGt(userClaimableVePerpAmount, 0);
 
         // mock vePERP lock__end, deposit_for
         vm.mockCall(
@@ -146,10 +137,10 @@ contract PerpBuybackTest is IPerpBuybackEvent, SetUp {
     }
 
     function test_revert_claim_when_end_time_is_less_than_26_weeks() external {
-        address user = address(0x1);
+        address user = perpBuyback.getUserByIndex(0);
 
         // swapInPerpBuybackPool (swap 1800 USD for 180 PERP)
-        uint256 buybackUsdcAmount = 1_800 * 10**6;
+        uint256 buybackUsdcAmount = 1_800 * 10 ** 6;
         uint256 buybackPerpAmount = 180 ether;
 
         usdc.mint(address(perpBuyback), buybackUsdcAmount);
@@ -162,7 +153,7 @@ contract PerpBuybackTest is IPerpBuybackEvent, SetUp {
         perpBuyback.swapInPerpBuybackPool();
 
         uint256 userClaimableVePerpAmount = perpBuyback.getUserClaimableVePerpAmount(user);
-        assertEq(userClaimableVePerpAmount, 10 ether);
+        assertGt(userClaimableVePerpAmount, 0);
 
         // mock vePERP lock__end, deposit_for
         vm.mockCall(
@@ -178,13 +169,13 @@ contract PerpBuybackTest is IPerpBuybackEvent, SetUp {
         perpBuyback.claim();
     }
 
-    function test_revert_claim_when_user_is_not_in_canClaimVePerpUsers() external {
-        vm.expectRevert(bytes("PB_UINW"));
+    function test_revert_claim_when_user_is_not_in_user_map() external {
+        vm.expectRevert(bytes("PB_UNIUM"));
         perpBuyback.claim();
     }
 
     function test_revert_claim_when_user_claimable_amount_is_zero() external {
-        address user = address(0x1);
+        address user = perpBuyback.getUserByIndex(0);
         // mock vePERP lock__end, deposit_for
         vm.mockCall(
             vePerp,
@@ -200,7 +191,7 @@ contract PerpBuybackTest is IPerpBuybackEvent, SetUp {
     }
 
     function test_withdrawToken() external {
-        uint256 buybackUsdcAmount = 3_590_000 * 10**6;
+        uint256 buybackUsdcAmount = perpBuyback.getRemainingBuybackUsdcAmount();
         uint256 buybackPerpAmount = 359_000 ether;
 
         // assume swap 3.59M USDC for 0.358M PERP
@@ -249,19 +240,5 @@ contract PerpBuybackTest is IPerpBuybackEvent, SetUp {
 
     function test_getPerpBuybackPool() external {
         assertEq(perpBuyback.getPerpBuybackPool(), perpBuybackPool);
-    }
-
-    function test_getWhitelistUser() external {
-        address[18] memory users = perpBuyback.getWhitelistUser();
-
-        for (uint256 i = 0; i < 18; ++i) {
-            assertEq(whitelistUser[i], users[i]);
-        }
-    }
-
-    function test_isInWhitelist() external {
-        for (uint256 i = 0; i < 18; ++i) {
-            assertEq(perpBuyback.isInWhitelist(whitelistUser[i]), true);
-        }
     }
 }
