@@ -60,13 +60,14 @@ const config: HardhatUserConfig = {
         },
         vePerp: {
             [ChainId.OPTIMISM_CHAIN_ID]: "0xD360B73b19Fb20aC874633553Fb1007e9FcB2b78",
-            [ChainId.OPTIMISM_GOERLI_CHAIN_ID]: "0xcD1d0954D5D00f357A0B2aB7D0625ED7c41C9245",
+            // using new vePerp contract on optimism-goerli for testing
+            [ChainId.OPTIMISM_GOERLI_CHAIN_ID]: "0xC22de5226d505162644BB8B6631C2C414C6a86FC",
         },
         perpUsdChainlinkAggregator: {
             // url: https://docs.chain.link/data-feeds/price-feeds/addresses?network=optimism
             [ChainId.OPTIMISM_CHAIN_ID]: "0xA12CDDd8e986AF9288ab31E58C60e65F2987fB13",
             // mock aggregator contract on optimism-goerli, will always return 1 PERP = 10 USD
-            [ChainId.OPTIMISM_GOERLI_CHAIN_ID]: "0xFd79003451Ec6E8D595Cb0408caA29BbF5BE939A",
+            [ChainId.OPTIMISM_GOERLI_CHAIN_ID]: "0xb04713fcF119c14e136679271865C1B3827d56e0",
         },
     },
     paths: {
