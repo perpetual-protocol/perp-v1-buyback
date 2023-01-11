@@ -69,7 +69,7 @@ contract PerpBuyback is IPerpBuyback, ReentrancyGuardUpgradeable, Ownable2StepUp
     }
 
     function withdrawToken(address token, uint256 tokenAmount) external onlyOwner {
-        if (token == _usdc) {
+        if (token == _usdc || token == _perp) {
             // PB_RBUAGE: remaining buyback USDC amount not zero
             require(_remainingBuybackUsdcAmount == 0, "PB_RBUANZ");
         }
