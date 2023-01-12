@@ -1,4 +1,4 @@
-import { DeployFunction } from "hardhat-deploy/types"
+import { DeployFunction, TxOptions } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { DeploymentsKey, ExternalDeploymentsKey } from "../constants"
 
@@ -8,6 +8,30 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { ethers, deployments, getNamedAccounts } = hre
 
     const { gnosisSafeAddress } = await getNamedAccounts()
+
+    // utils function, copy from perp-deployments, in order to catch gnosisSafe execute transaction info
+    const execute = async (
+        deploymentKey: string,
+        methodName: string,
+        args: any[],
+        txOptions?: TxOptions,
+    ): Promise<void> => {
+        const { catchUnknownSigner } = deployments
+
+        const from = await deployments.read(deploymentKey, "owner")
+
+        console.log(`execute ${deploymentKey}.${methodName}(${args})`)
+
+        const overrides = {
+            ...{
+                from: from,
+                log: true,
+            },
+            ...txOptions,
+        }
+
+        await catchUnknownSigner(deployments.execute(deploymentKey, overrides, methodName, ...args))
+    }
 
     const proxyAdminDeployment = await deployments.get(ExternalDeploymentsKey.DefaultProxyAdmin)
     const proxyAdmin = await ethers.getContractAt(proxyAdminDeployment.abi, proxyAdminDeployment.address)
@@ -38,10 +62,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
         if (owner !== gnosisSafeAddress) {
             if (pendingOwner !== gnosisSafeAddress) {
-                await this.execute(deploymentKey, "transferOwnership", [gnosisSafeAddress])
-                await this.execute(deploymentKey, "acceptOwnership", [], { from: gnosisSafeAddress })
+                await execute(deploymentKey, "transferOwnership", [gnosisSafeAddress])
+                await execute(deploymentKey, "acceptOwnership", [], { from: gnosisSafeAddress })
             } else {
-                await this.execute(deploymentKey, "acceptOwnership", [], { from: gnosisSafeAddress })
+                await execute(deploymentKey, "acceptOwnership", [], { from: gnosisSafeAddress })
             }
         } else {
             console.log(`${deploymentKey}'s owner is already transferred to ${gnosisSafeAddress}`)
