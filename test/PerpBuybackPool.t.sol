@@ -117,6 +117,24 @@ contract PerpBuybackPoolTest is SetUp {
         perpBuybackPool.withdrawToken(address(perp), 42 ether);
     }
 
+    function test_withdrawAllToken() external {
+        address perpBuybackPoolOwner = perpBuybackPool.owner();
+
+        uint256 ownerPerpBalanceBefore = perp.balanceOf(perpBuybackPoolOwner);
+        perpBuybackPool.withdrawAllToken(address(perp));
+
+        uint256 ownerPerpBalanceAfter = perp.balanceOf(perpBuybackPoolOwner);
+
+        // initial perpBuybackPool has 1000 PERP
+        assertEq(ownerPerpBalanceAfter - ownerPerpBalanceBefore, 1000 ether);
+    }
+
+    function test_revert_withdrawAllToken_when_not_owner() external {
+        vm.expectRevert(bytes("Ownable: caller is not the owner"));
+        vm.prank(address(0x42));
+        perpBuybackPool.withdrawAllToken(address(perp));
+    }
+
     function test_revert_setPerpBuyback_when_not_owner() external {
         vm.expectRevert(bytes("Ownable: caller is not the owner"));
         vm.prank(address(0x42));

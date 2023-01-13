@@ -40,8 +40,8 @@ contract PerpBuybackTest is IPerpBuybackEvent, SetUp {
 
         perpBuyback.swapInPerpBuybackPool();
 
-        // 358763363 - 1800 = 358761563
-        assertEq(perpBuyback.getRemainingBuybackUsdcAmount(), 358761563 * 10 ** 6);
+        // 3587633.63 - 1800 = 3,585,833.63
+        assertEq(perpBuyback.getRemainingBuybackUsdcAmount(), 358583363 * 10 ** 4);
 
         // 180 PERP * 21.5717% = 38.82906
         assertEq(

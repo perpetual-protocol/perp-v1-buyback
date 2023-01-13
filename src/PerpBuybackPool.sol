@@ -41,6 +41,12 @@ contract PerpBuybackPool is IPerpBuybackPool, Ownable2StepUpgradeable, PerpBuyba
         IERC20Upgradeable(token).transfer(owner, tokenAmount);
     }
 
+    function withdrawAllToken(address token) external onlyOwner {
+        address owner = owner();
+        uint256 balance = IERC20Upgradeable(token).balanceOf(address(this));
+        IERC20Upgradeable(token).transfer(owner, balance);
+    }
+
     function swap(uint256 usdcAmount) external override returns (uint256) {
         address perpBuyback = _perpBuyBack;
 

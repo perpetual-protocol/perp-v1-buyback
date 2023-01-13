@@ -28,7 +28,9 @@
     "coverage": "forge coverage",
     "coverage:report": "forge coverage --report lcov; genhtml lcov.info --output-directory coverage-out",
     "deploy:optimism": "hardhat deploy --network optimism",
-    "deploy:optimism-goerli": "hardhat deploy --network optimism-goerli"
+    "deploy:optimism-goerli": "hardhat deploy --network optimism-goerli",
+    "verify:optimism": "hardhat --network optimism etherscan-verify",
+    "verify:optimism-goerli": "hardhat --network optimism-goerli etherscan-verify"
   },
   "devDependencies": {
     "@chainlink/contracts": "0.1.7",

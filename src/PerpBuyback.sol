@@ -41,6 +41,7 @@ contract PerpBuyback is IPerpBuyback, ReentrancyGuardUpgradeable, Ownable2StepUp
         _vePerp = vePerpArg;
         _perpBuybackPool = perpBuybackPoolArg;
 
+        // can reference here: https://docs.google.com/spreadsheets/d/1Ok1LiKi4ApwfzviEMUd6NhxTI0B7ewogITDsq_ts7fI/edit?usp=sharing
         _sharesByUser.set(0x000000ea89990a17Ec07a35Ac2BBb02214C50152, 215717);
         _sharesByUser.set(0xbb327eBA8fC6085E8639E378FE86c73546ddab2D, 174893);
         _sharesByUser.set(0xA0e04247d39eBc07f38ACca38Dc10E14fa8d6C98, 5705);
@@ -61,8 +62,8 @@ contract PerpBuyback is IPerpBuyback, ReentrancyGuardUpgradeable, Ownable2StepUp
         _sharesByUser.set(0x8540078e825f1A7D1c12f3C8CD4dFD7A05FE2995, 27513);
         _sharesByUser.set(0xcAcC55289917abAF27eA98c51C9aF87c6F94f6Bf, 16461);
 
-        // in USDC (6 decimals)
-        _remainingBuybackUsdcAmount = 358763363 * 10 ** 6;
+        // in USDC (6 decimals), 3,587,633.63 U
+        _remainingBuybackUsdcAmount = 358763363 * 10 ** 4;
 
         __Ownable2Step_init();
         __ReentrancyGuard_init();

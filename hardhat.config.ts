@@ -47,7 +47,7 @@ const config: HardhatUserConfig = {
     namedAccounts: {
         deployer: 0,
         gnosisSafeAddress: {
-            [ChainId.OPTIMISM_CHAIN_ID]: "0x5E5c7dE5E4C223B7fA506E2C2b7328fA8388d502",
+            [ChainId.OPTIMISM_CHAIN_ID]: "0x76Ff908b6d43C182DAEC59b35CebC1d7A17D8086",
             [ChainId.OPTIMISM_GOERLI_CHAIN_ID]: "0x9E9DFaCCABeEcDA6dD913b3685c9fe908F28F58c",
         },
         usdc: {
