@@ -39,7 +39,7 @@ contract PerpBuybackPoolTest is SetUp {
     }
 
     function test_swap(uint256 perpPriceLatestAnswer) external {
-        // assume perp price is between 0.1U ~ 10U 
+        // assume perp price is between 0.1U ~ 10U
         perpPriceLatestAnswer = bound(perpPriceLatestAnswer, 0.1e8, 10e8);
         vm.mockCall(
             perpChainlinkAggregator,
@@ -72,6 +72,56 @@ contract PerpBuybackPoolTest is SetUp {
         assertEq(perpBuybackPoolUsdcBalanceAfter - perpBuybackPoolUsdcBalanceBefore, usdcBuybackAmount);
         assertEq(perpBuybackPerpBalanceAfter - perpBuybackPerpBalanceBefore, perpBuybackAmount);
         assertEq(perpBuybackUsdcBalanceBefore - perpBuybackUsdcBalanceAfter, usdcBuybackAmount);
+    }
+
+    function test_swap_less_than_1(uint256 perpPriceLatestAnswer) external {
+        // given perp price is 0.1, chainlink decimal is 8
+        vm.mockCall(
+            perpChainlinkAggregator,
+            abi.encodeWithSelector(AggregatorInterface.latestAnswer.selector),
+            abi.encode(0.1e8)
+        );
+
+        // given Buyback has 42 USDC (6 decimals), 0 PERP (18 decimals)
+        uint256 usdcBuybackAmount = 42 * 10 ** 6;
+        usdc.mint(perpBuyback, usdcBuybackAmount);
+        assertEq(usdc.balanceOf(address(perpBuyback)), usdcBuybackAmount);
+        assertEq(perp.balanceOf(address(perpBuyback)), 0);
+
+        // when Buyback swap 42 USDC to 420 PERP (18 decimals) at price 0.1
+        vm.startPrank(perpBuyback);
+        usdc.approve(address(perpBuybackPool), usdcBuybackAmount);
+        assertEq(perpBuybackPool.swap(usdcBuybackAmount), 420 * 10 ** 18);
+        vm.stopPrank();
+
+        // then Buyback has 0 USDC, 420 PERP
+        assertEq(usdc.balanceOf(address(perpBuyback)), 0);
+        assertEq(perp.balanceOf(address(perpBuyback)), 420 * 10 ** 18);
+    }
+
+    function test_swap_greater_than_1(uint256 perpPriceLatestAnswer) external {
+        // given perp price is 1.5, chainlink decimal is 8
+        vm.mockCall(
+            perpChainlinkAggregator,
+            abi.encodeWithSelector(AggregatorInterface.latestAnswer.selector),
+            abi.encode(1.5e8)
+        );
+
+        // given Buyback has 42 USDC (6 decimals), 0 PERP (18 decimals)
+        uint256 usdcBuybackAmount = 42 * 10 ** 6;
+        usdc.mint(perpBuyback, usdcBuybackAmount);
+        assertEq(usdc.balanceOf(address(perpBuyback)), usdcBuybackAmount);
+        assertEq(perp.balanceOf(address(perpBuyback)), 0);
+
+        // when Buyback swap 42 USDC to 28 PERP (18 decimals) at price 1.5
+        vm.startPrank(perpBuyback);
+        usdc.approve(address(perpBuybackPool), usdcBuybackAmount);
+        assertEq(perpBuybackPool.swap(usdcBuybackAmount), 28 * 10 ** 18);
+        vm.stopPrank();
+
+        // then Buyback has 0 USDC, 28 PERP
+        assertEq(usdc.balanceOf(address(perpBuyback)), 0);
+        assertEq(perp.balanceOf(address(perpBuyback)), 28 * 10 ** 18);
     }
 
     function test_revert_swap_perp_balance_insufficient() external {
