@@ -16,3 +16,7 @@ out/
 coverage-out
 *.info
 typechain-types
+
+# hardhat forking
+localhost/
+unknown-31337.json
