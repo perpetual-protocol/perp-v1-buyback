@@ -38,8 +38,16 @@ contract PerpBuybackPoolTest is SetUp {
         perp.mint(address(perpBuybackPool), 1000 ether);
     }
 
-    function test_swap() external {
-        uint256 usdcBuybackAmount = 420 * 10 ** 6;
+    function test_swap(uint256 perpPriceLatestAnswer) external {
+        // assume perp price is between 0.1U ~ 10U 
+        perpPriceLatestAnswer = bound(perpPriceLatestAnswer, 0.1e8, 10e8);
+        vm.mockCall(
+            perpChainlinkAggregator,
+            abi.encodeWithSelector(AggregatorInterface.latestAnswer.selector),
+            abi.encode(perpPriceLatestAnswer)
+        );
+
+        uint256 usdcBuybackAmount = 42 * 10 ** 6;
         usdc.mint(perpBuyback, usdcBuybackAmount);
 
         uint256 perpBuybackPoolPerpBalanceBefore = perp.balanceOf(address(perpBuybackPool));
@@ -48,7 +56,6 @@ contract PerpBuybackPoolTest is SetUp {
         uint256 perpBuybackUsdcBalanceBefore = usdc.balanceOf(perpBuyback);
 
         vm.startPrank(perpBuyback);
-        // PERP price is 10 USD, 420 USD will swap for 42 PERP
         usdc.approve(address(perpBuybackPool), usdcBuybackAmount);
         uint256 perpBuybackAmount = perpBuybackPool.swap(usdcBuybackAmount);
         vm.stopPrank();
@@ -58,7 +65,9 @@ contract PerpBuybackPoolTest is SetUp {
         uint256 perpBuybackPerpBalanceAfter = perp.balanceOf(perpBuyback);
         uint256 perpBuybackUsdcBalanceAfter = usdc.balanceOf(perpBuyback);
 
-        assertEq(perpBuybackAmount, 42 ether);
+        // expectedPerpBuybackAmount = usdcBuybackAmount * 1e12 * 1e8 / perpPriceLatestAnswer
+        uint256 expectedPerpBuybackAmount = usdcBuybackAmount * 1e20 / perpPriceLatestAnswer;
+        assertEq(perpBuybackAmount, expectedPerpBuybackAmount);
         assertEq(perpBuybackPoolPerpBalanceBefore - perpBuybackPoolPerpBalanceAfter, perpBuybackAmount);
         assertEq(perpBuybackPoolUsdcBalanceAfter - perpBuybackPoolUsdcBalanceBefore, usdcBuybackAmount);
         assertEq(perpBuybackPerpBalanceAfter - perpBuybackPerpBalanceBefore, perpBuybackAmount);
