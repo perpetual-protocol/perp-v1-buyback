@@ -57,10 +57,9 @@ contract PerpBuybackPool is IPerpBuybackPool, Ownable2StepUpgradeable, PerpBuyba
         int256 latestAnswer = AggregatorV2V3Interface(_perpChainlinkAggregator).latestAnswer();
         // PBP_OIZ: oracle is zero
         require(latestAnswer > 0, "PBP_OIZ");
-        uint256 perpIndexPrice = uint256(latestAnswer) / (10 ** chainlinkDecimals);
 
         // usdc is in 6 decimals, perp is in 18 decimals
-        uint256 buybackPerpAmount = (usdcAmount * (10 ** 12)) / perpIndexPrice;
+        uint256 buybackPerpAmount = (usdcAmount * (10**(12 + chainlinkDecimals))) / uint256(latestAnswer);
         uint256 perpBalance = IERC20Upgradeable(_perp).balanceOf(address(this));
 
         // PBP_PBI: perp balance is insufficient
