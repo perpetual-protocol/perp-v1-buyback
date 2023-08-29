@@ -2,7 +2,7 @@ pragma solidity 0.8.17;
 
 import { SetUp } from "./SetUp.sol";
 import { PerpBuybackPool } from "../src/PerpBuybackPool.sol";
-import { AggregatorInterface, AggregatorV3Interface } from "@chainlink/contracts/src/v0.6/interfaces/AggregatorV2V3Interface.sol";
+import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.6/interfaces/AggregatorV2V3Interface.sol";
 
 contract PerpBuybackPoolTest is SetUp {
     address public perpBuyback;
@@ -20,8 +20,8 @@ contract PerpBuybackPoolTest is SetUp {
         // not sure why using AggregatorV2V3Interface will failed here, so separate interface first
         vm.mockCall(
             perpChainlinkAggregator,
-            abi.encodeWithSelector(AggregatorInterface.latestAnswer.selector),
-            abi.encode(10 * 10 ** 8)
+            abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+            abi.encode(0, 10 * 1e8, block.timestamp, block.timestamp, 0)
         );
         vm.mockCall(
             perpChainlinkAggregator,
@@ -43,8 +43,8 @@ contract PerpBuybackPoolTest is SetUp {
         perpPriceLatestAnswer = bound(perpPriceLatestAnswer, 0.1e8, 10e8);
         vm.mockCall(
             perpChainlinkAggregator,
-            abi.encodeWithSelector(AggregatorInterface.latestAnswer.selector),
-            abi.encode(perpPriceLatestAnswer)
+            abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+            abi.encode(0, perpPriceLatestAnswer, block.timestamp, block.timestamp, 0)
         );
 
         uint256 usdcBuybackAmount = 42 * 10 ** 6;
@@ -66,7 +66,7 @@ contract PerpBuybackPoolTest is SetUp {
         uint256 perpBuybackUsdcBalanceAfter = usdc.balanceOf(perpBuyback);
 
         // expectedPerpBuybackAmount = usdcBuybackAmount * 1e12 * 1e8 / perpPriceLatestAnswer
-        uint256 expectedPerpBuybackAmount = usdcBuybackAmount * 1e20 / perpPriceLatestAnswer;
+        uint256 expectedPerpBuybackAmount = (usdcBuybackAmount * 1e20) / perpPriceLatestAnswer;
         assertEq(perpBuybackAmount, expectedPerpBuybackAmount);
         assertEq(perpBuybackPoolPerpBalanceBefore - perpBuybackPoolPerpBalanceAfter, perpBuybackAmount);
         assertEq(perpBuybackPoolUsdcBalanceAfter - perpBuybackPoolUsdcBalanceBefore, usdcBuybackAmount);
@@ -78,8 +78,8 @@ contract PerpBuybackPoolTest is SetUp {
         // given perp price is 0.1, chainlink decimal is 8
         vm.mockCall(
             perpChainlinkAggregator,
-            abi.encodeWithSelector(AggregatorInterface.latestAnswer.selector),
-            abi.encode(0.1e8)
+            abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+            abi.encode(0, 0.1e8, block.timestamp, block.timestamp, 0)
         );
 
         // given Buyback has 42 USDC (6 decimals), 0 PERP (18 decimals)
@@ -103,8 +103,8 @@ contract PerpBuybackPoolTest is SetUp {
         // given perp price is 1.5, chainlink decimal is 8
         vm.mockCall(
             perpChainlinkAggregator,
-            abi.encodeWithSelector(AggregatorInterface.latestAnswer.selector),
-            abi.encode(1.5e8)
+            abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+            abi.encode(0, 1.5e8, block.timestamp, block.timestamp, 0)
         );
 
         // given Buyback has 42 USDC (6 decimals), 0 PERP (18 decimals)
@@ -136,11 +136,27 @@ contract PerpBuybackPoolTest is SetUp {
         vm.stopPrank();
     }
 
+    function test_revert_swap_stale_price() external {
+        vm.mockCall(
+            perpChainlinkAggregator,
+            abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+            abi.encode(0, 0 * 10 ** 8, block.timestamp, block.timestamp, 0)
+        );
+
+        // forward block.timestamp to 1 day + 1 minute later
+        vm.warp(86400 + 60);
+
+        vm.startPrank(perpBuyback);
+        vm.expectRevert(bytes("PBP_SP"));
+        perpBuybackPool.swap(1);
+        vm.stopPrank();
+    }
+
     function test_revert_swap_perp_oracle_is_zero() external {
         vm.mockCall(
             perpChainlinkAggregator,
-            abi.encodeWithSelector(AggregatorInterface.latestAnswer.selector),
-            abi.encode(0 * 10 ** 8)
+            abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+            abi.encode(0, 0 * 10 ** 8, block.timestamp, block.timestamp, 0)
         );
 
         uint256 usdcBuybackAmount = 10 * 10 ** 6;

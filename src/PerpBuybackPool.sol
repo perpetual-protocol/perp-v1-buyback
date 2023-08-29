@@ -11,6 +11,9 @@ import { AddressUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/Ad
 contract PerpBuybackPool is IPerpBuybackPool, Ownable2StepUpgradeable, PerpBuybackPoolStorage {
     using AddressUpgradeable for address;
 
+    // https://docs.chain.link/data-feeds/price-feeds/addresses?network=optimism#Optimism%20Mainnet
+    uint256 public constant PERP_PRICE_FEED_HEARTBEAT = 86400;
+
     //
     // EXTERNAL NON-VIEW
     //
@@ -54,8 +57,11 @@ contract PerpBuybackPool is IPerpBuybackPool, Ownable2StepUpgradeable, PerpBuyba
         require(msg.sender == perpBuyback, "PBP_OPB");
 
         uint8 chainlinkDecimals = AggregatorV2V3Interface(_perpChainlinkAggregator).decimals();
-        // NOTE: using latestAnswer might encounter steal price issue, but it's fine for now
-        int256 latestAnswer = AggregatorV2V3Interface(_perpChainlinkAggregator).latestAnswer();
+        (, int256 latestAnswer, , uint256 updatedAt, ) = AggregatorV2V3Interface(_perpChainlinkAggregator)
+            .latestRoundData();
+
+        // PBP_SP: stale price
+        require(block.timestamp <= updatedAt + PERP_PRICE_FEED_HEARTBEAT, "PBP_SP");
         // PBP_OIZ: oracle is zero
         require(latestAnswer > 0, "PBP_OIZ");
 
