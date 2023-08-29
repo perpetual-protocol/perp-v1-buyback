@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import { IPerpBuyback } from "./interface/IPerpBuyback.sol";
 import { IVePerp } from "./interface/IVePerp.sol";
 import { IPerpBuybackPool } from "./interface/IPerpBuybackPool.sol";
+import { IUniswapV3Router } from "./interface/IUniswapV3Router.sol";
 import { PerpBuybackStorage } from "./storage/PerpBuybackStorage.sol";
 import { Ownable2StepUpgradeable } from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -15,6 +16,8 @@ contract PerpBuyback is IPerpBuyback, ReentrancyGuardUpgradeable, Ownable2StepUp
     using AddressUpgradeable for address;
     using EnumerableMapUpgradeable for EnumerableMapUpgradeable.AddressToUintMap;
 
+    address public constant UNISWAP_V3_ROUTER = address(0xE592427A0AEce92De3Edee1F18E0157C05861564);
+    address public constant WETH = address(0x4200000000000000000000000000000000000006);
     uint256 private constant WEEK = 7 * 86400;
 
     //
@@ -79,6 +82,42 @@ contract PerpBuyback is IPerpBuyback, ReentrancyGuardUpgradeable, Ownable2StepUp
         IERC20Upgradeable(token).transfer(owner, tokenAmount);
     }
 
+    // NOTE: use fixed path for now, and this function will only trigger by owner, MEV is not our concern
+    function swapInUniswapV3Pool() external onlyOwner {
+        // PB_RBUAIZ: remaining buyback USDC amount is zero
+        require(_remainingBuybackUsdcAmount > 0, "PB_RBUAIZ");
+
+        uint256 usdcBalance = IERC20Upgradeable(_usdc).balanceOf(address(this));
+        uint256 buybackUsdcAmount = usdcBalance > _remainingBuybackUsdcAmount
+            ? _remainingBuybackUsdcAmount
+            : usdcBalance;
+        _remainingBuybackUsdcAmount -= buybackUsdcAmount;
+
+        require(IERC20Upgradeable(_usdc).approve(UNISWAP_V3_ROUTER, buybackUsdcAmount));
+
+        // Fixed path: USDC -> WETH (0.05% pool), WETH -> PERP (0.3% pool)
+        bytes memory path = abi.encodePacked(_usdc, uint24(500), WETH, uint24(3000), _perp);
+        uint256 totalPerpBoughtThisTime = IUniswapV3Router(UNISWAP_V3_ROUTER).exactInput(
+            IUniswapV3Router.ExactInputParams({
+                path: path,
+                recipient: address(this),
+                deadline: block.timestamp,
+                amountIn: buybackUsdcAmount,
+                amountOutMinimum: 0
+            })
+        );
+
+        uint256 totalUserAmount = _sharesByUser.length();
+        for (uint8 i = 0; i < totalUserAmount; i++) {
+            (address user, uint256 shares) = _sharesByUser.at(i);
+            uint256 perpBoughtThisTimeForUser = (totalPerpBoughtThisTime * shares) / 10 ** 6;
+            _userClaimableVePerpAmount[user] += perpBoughtThisTimeForUser;
+        }
+
+        emit BuybackTriggered(buybackUsdcAmount, totalPerpBoughtThisTime);
+    }
+
+    // NOTE: this function is deprecated, but keep this in case we need it in the future
     function swapInPerpBuybackPool() external nonReentrant {
         // PB_RBUAIZ: remaining buyback USDC amount is zero
         require(_remainingBuybackUsdcAmount > 0, "PB_RBUAIZ");
@@ -106,7 +145,7 @@ contract PerpBuyback is IPerpBuyback, ReentrancyGuardUpgradeable, Ownable2StepUp
 
     function claim() external nonReentrant {
         address user = msg.sender;
-        
+
         // PB_UNIUM: user is not in user map
         require(_sharesByUser.contains(user), "PB_UNIUM");
 
