@@ -74,7 +74,7 @@ contract PerpBuybackPoolTest is SetUp {
         assertEq(perpBuybackUsdcBalanceBefore - perpBuybackUsdcBalanceAfter, usdcBuybackAmount);
     }
 
-    function test_swap_less_than_1(uint256 perpPriceLatestAnswer) external {
+    function test_swap_less_than_1() external {
         // given perp price is 0.1, chainlink decimal is 8
         vm.mockCall(
             perpChainlinkAggregator,
@@ -99,7 +99,7 @@ contract PerpBuybackPoolTest is SetUp {
         assertEq(perp.balanceOf(address(perpBuyback)), 420 * 10 ** 18);
     }
 
-    function test_swap_greater_than_1(uint256 perpPriceLatestAnswer) external {
+    function test_swap_greater_than_1() external {
         // given perp price is 1.5, chainlink decimal is 8
         vm.mockCall(
             perpChainlinkAggregator,
