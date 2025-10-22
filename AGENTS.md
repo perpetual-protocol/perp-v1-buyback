@@ -40,3 +40,9 @@ Use `forge test -vvv` for trace-heavy debugging and `npm run typechain` after AB
 - Store deploy secrets in `.env`; never commit RPC URLs or keys.
 - Keep `constants.ts` and `deployments/` synchronized before shipping a live deploy.
 - When altering upgradeable storage, adjust `src/storage/` structs and document the layout change in the PR so auditors can follow.
+
+## Proposal Implementation Constraints
+- Treat the effort as a direct execution of `doc/proposal.md` with zero appetite for scope creep—only implement what the proposal demands and keep the contract surface minimal.
+- The deployment target is Optimism Mainnet; prioritize staying within block gas limits over micro-optimizing gas costs, and skip complexity that only saves a handful of gas.
+- Optimize for stakeholder reviewability: prefer explicit, hard-coded addresses, ratios, and flows when they make the on-chain behavior self-evident, even if it diverges from typical software engineering patterns.
+- Emit events for every state mutation that affects accounting so we can reconstruct history if a migration is ever required (e.g., tracking repaid amounts and participant shares for a successor contract).
