@@ -91,7 +91,7 @@ contract PerpBuybackRedistributeTest is IPerpBuybackEvent, SetUp {
             abi.encode(uint256(1))
         );
 
-        vm.expectRevert(bytes("Inactive account already claimed"));
+        vm.expectRevert(bytes("Account has vePERP activity, cannot remove"));
         perpBuyback.redistribute_2025();
     }
 
